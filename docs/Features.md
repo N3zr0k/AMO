@@ -1,6 +1,6 @@
 # Funktionen
 
-Stand: 0.1.9-latest.1
+Stand: 0.1.9-latest.2
 
 | Funktion | Beschreibung |
 | --- | --- |

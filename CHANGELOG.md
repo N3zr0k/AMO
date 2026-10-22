@@ -6,7 +6,7 @@
 
 ### Changed
 - Removed the unused AceGUI and AceConfig libraries (smaller addon)
-- Cleaned up code, test stubs, luacheck globals and docs
+- Cleaned up code, test stubs, luacheck globals and docs; fixed two luacheck warnings
 
 ## [0.1.8]
 

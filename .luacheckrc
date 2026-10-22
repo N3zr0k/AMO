@@ -24,5 +24,5 @@ read_globals = {
     "UIParent", "Settings", "GetTime", "UnitGUID", "UnitName", "UnitLevel", "GetLocale", "GetAddOnMetadata",
     "IsShiftKeyDown", "IsControlKeyDown", "IsAltKeyDown", "issecretvalue", "GetItemInfoInstant", "InCombatLockdown",
     "tinsert", "tremove", "wipe", "format", "strsplit", "strmatch", "strtrim", "strlower", "gsub", "time", "ceil",
-    "floor", "_G", "SlashCmdList", "geterrorhandler", "IsInInstance", "Item", "GetItemInfo", "UnitClass", "unpack",
+    "floor", "_G", "geterrorhandler", "IsInInstance", "Item", "GetItemInfo", "UnitClass", "unpack",
 }

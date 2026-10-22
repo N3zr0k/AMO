@@ -76,7 +76,7 @@ end)
 -- Ein Rahmen, der jeden Aufruf annimmt: reicht, um zu sehen, dass sich die Optionsseiten ohne Fehler aufbauen
 local function fakeFrame()
     return setmetatable({}, { __index = function(_, method)
-        return function(_, ...)
+        return function()
             if method:sub(1, 6) == "Create" then return fakeFrame() end
             if method == "GetStringHeight" then return 12 end
             if method == "GetChecked" then return true end
