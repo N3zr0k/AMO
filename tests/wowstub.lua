@@ -90,13 +90,6 @@ function stub.newAMO()
         ["AceDB-3.0"] = {
             New = function(_, _, defaults) return { profile = Copy(defaults.profile) } end,
         },
-        ["AceConfig-3.0"] = { RegisterOptionsTable = function(_, name, options) addon.registered[name] = options end },
-        ["AceConfigDialog-3.0"] = {
-            AddToBlizOptions = function() return {}, 1 end,
-            Open = function() end,
-        },
-        ["AceConfigRegistry-3.0"] = { NotifyChange = function() end },
-        ["AceGUI-3.0"] = {},
     }
     _G.LibStub = function(name) return libs[name] end
     return addon

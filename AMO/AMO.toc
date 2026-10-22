@@ -3,7 +3,7 @@
 ## Notes: Ammo warnings and refill for hunters: running low, before a dungeon, best ammo equipped, refill at the vendor.
 ## Notes-deDE: Munitionshelfer für Jäger: Warnungen bei knappem Vorrat und vor Dungeons, beste Munition automatisch anlegen, am Händler auffüllen.
 
-## Version: 0.1.8-latest.1
+## Version: 0.1.9-latest.1
 ## Author: N3zr0k
 ## X-License: MIT
 ## X-Website: https://github.com/N3zr0k/AMO

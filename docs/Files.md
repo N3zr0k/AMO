@@ -11,7 +11,7 @@ Alle Dateien im Spielordner `AMO/`.
 | `Media/Icon.tga` | Logo (128x128): Addon-Liste, Optionen, Addon-Kompartment (Tooltip), Kopfzeile im Item-Tooltip | – | – |
 | `LICENSE` | MIT-Lizenz | – | – |
 | `Libs/Libs.xml` | Lädt die eingebetteten Bibliotheken | – | – |
-| `Libs/*` | Ace3-Teilmenge: LibStub, CallbackHandler, AceAddon, AceEvent, AceDB, AceLocale, AceGUI, AceConfig | – | – |
+| `Libs/*` | Ace3-Teilmenge: LibStub, CallbackHandler, AceAddon, AceEvent, AceDB, AceLocale | – | – |
 | `Locales/Locales.xml` | Lädt die Sprachen | – | – |
 | `Locales/enUS.lua`, `Locales/deDE.lua` | Texte der Oberfläche | – | – |
 | `Core/Core.xml` | Lädt die Kerndateien vor den Modulen | – | – |
@@ -21,7 +21,7 @@ Alle Dateien im Spielordner `AMO/`.
 | `Core/AMOTooltip.lua` | Zeilen in Item-Tooltips | – | Blizzard: `TooltipDataProcessor` |
 | `Core/AMOCompartment.lua` | Eintrag im Addon-Kompartment (Minikarte) mit Logo im Tooltip, Klick öffnet die Optionen | – | Blizzard: `AddonCompartmentFrame` |
 | `Core/Options.xml` | Lädt Optionen und Befehle nach den Modulen | – | – |
-| `Core/AMOOptions.lua` | Optionsseite: Übersicht (Logo, Version, Autor) und Unterseite Allgemein mit Abschnitten; Blizzard-Bausteine, kein AceConfig | `AMODB` lesen/schreiben | Blizzard: `Settings`, `CreateFrame` |
+| `Core/AMOOptions.lua` | Optionsseite: Übersicht (Logo, Version, Autor) und Unterseite Allgemein mit Abschnitten (Blizzard-Bausteine) | `AMODB` lesen/schreiben | Blizzard: `Settings`, `CreateFrame` |
 | `Core/AMOCommands.lua` | Slash-Befehl `/amo`, Prüfungen | – | – |
 | `Modules/Modules.xml` | Lädt die Module | – | – |
 | `Modules/Ammo/Ammo.xml` | Lädt die Munitionsfunktion | – | – |

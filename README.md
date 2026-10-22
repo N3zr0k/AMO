@@ -38,7 +38,7 @@ Copy the `AMO` folder into `Interface/AddOns`.
 
 ## Credits
 
-Ace3 libraries (LibStub, CallbackHandler, AceAddon, AceEvent, AceDB, AceLocale, AceGUI, AceConfig). Moved here from Glimpse: Classes.
+Ace3 libraries (LibStub, CallbackHandler, AceAddon, AceEvent, AceDB, AceLocale). Moved here from Glimpse: Classes.
 
 ## License
 

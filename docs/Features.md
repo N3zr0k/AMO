@@ -1,6 +1,6 @@
 # Funktionen
 
-Stand: 0.1.8-latest.1
+Stand: 0.1.9-latest.1
 
 | Funktion | Beschreibung |
 | --- | --- |
@@ -13,7 +13,7 @@ Stand: 0.1.8-latest.1
 
 ## Datenbank
 
-AMO nutzt keine Glimpse-Datenbank. Einstellungen stehen in der SavedVariable `AMODB` (Profil: `enabled`, `ammo`).
+Einstellungen stehen in der SavedVariable `AMODB` (Profil: `enabled`, `ammo`).
 
 | Namespace / SavedVariable | Lesen | Schreiben |
 | --- | --- | --- |

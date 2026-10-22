@@ -1,6 +1,6 @@
 local ADDON_NAME = ...
 
--- A.M.O Arrows, Muskets & Organization: Munitionshelfer für Jäger. Das Addon arbeitet allein, ohne Glimpse.
+-- A.M.O Arrows, Muskets & Organization: Munitionshelfer für Jäger.
 -- Aufbau: Core/ (Gerüst), Modules/Ammo/ (die Funktion), Locales/. Die Funktion hängt sich mit AMO:Listen an Ereignisse und
 -- meldet über AMO:Notify; ihre Einstellungen liegen in AMO.db.profile.ammo.
 local AMO = LibStub("AceAddon-3.0"):NewAddon(ADDON_NAME, "AceEvent-3.0")

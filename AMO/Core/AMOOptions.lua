@@ -1,7 +1,7 @@
 local AMO = LibStub("AceAddon-3.0"):GetAddon("AMO")
 local L = AMO.L
 
--- Optionsseite im Einstellungsfenster, mit normalen Blizzard-Bausteinen wie in Binds (kein AceConfig).
+-- Optionsseite im Einstellungsfenster, mit normalen Blizzard-Bausteinen wie in Binds.
 -- Aufbau: "AMO" ist eine Übersichtsseite (Logo, Version, Autor), alle Einstellungen stehen in der Unterseite "Allgemein",
 -- gegliedert in Abschnitte mit Überschrift links und Trennlinie. Was auf die Seite kommt, steht als Daten in
 -- AMO:OptionSections() (Core) und Ammo.OptionSections() (Modules/Ammo/AmmoOptions.lua).
@@ -9,7 +9,7 @@ local L = AMO.L
 local PADDING = 16
 local SECTION_GAP = 22
 local WIDTH = 560 -- Breite des Inhalts der Unterseite
-local INDENT = 30
+local CHECK_WIDTH = 30 -- Platz des Kästchens, daneben beginnt der Beschreibungstext
 
 ----------------------------------------------------------------------
 -- Daten
@@ -128,7 +128,7 @@ local function Toggle(panel, parent, y, item)
     end
     y = y + 26
     if item.desc then
-        local desc = Description(parent, y + 2, x + 30, WIDTH - (item.indent or 0) - 30, item.desc)
+        local desc = Description(parent, y + 2, x + CHECK_WIDTH, WIDTH - (item.indent or 0) - CHECK_WIDTH, item.desc)
         y = y + 2 + desc:GetStringHeight()
     end
     return y
