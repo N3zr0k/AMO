@@ -1,5 +1,6 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/">
     <!-- Nach den Modulen, denn die Optionsseite braucht die Optionen der Munition -->
     <Script file="AMOOptions.lua"/>
+    <Script file="AMOCompartment.lua"/>
     <Script file="AMOCommands.lua"/>
 </Ui>

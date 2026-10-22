@@ -19,7 +19,7 @@ read_globals = {
     "GetItemCount", "GetMerchantItemCostInfo", "GetMerchantItemCostItem", "SetItemButtonTexture", "SetItemButtonQuality", "CreateColor", "BANK_CONTAINER", "NUM_BANKBAGSLOTS", "GetRealmName", "GetServerTime", "MERCHANT_ITEMS_PER_PAGE", "ITEM_SPELL_KNOWN", "ITEM_MIN_SKILL", "ITEM_REQ_REPUTATION", "UnitFactionGroup", "GetSubZoneText", "MerchantFrame", "MerchantFrame_UpdateMerchantInfo", "SetItemButtonNameFrameVertexColor", "SetItemButtonSlotVertexColor", "SetItemButtonNormalTextureVertexColor",
     "LibStub", "CreateFrame", "C_Timer", "C_Item", "C_Loot", "C_AddOns", "C_ClickBindings", "C_Spell",
     "C_Container", "C_TooltipInfo", "C_ActionBar", "Enum", "TooltipDataProcessor",
-    "GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2", "UIParent", "Settings",
+    "GameTooltip", "AddonCompartmentFrame", "PixelUtil", "InterfaceOptions_AddCategory", "InterfaceOptionsFrame_OpenToCategory", "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2", "UIParent", "Settings",
     "GetTime", "UnitGUID", "C_Texture", "C_UnitAuras", "UnitName", "UnitLevel", "GetLocale", "GetAddOnMetadata", "IsAddOnLoaded",
     "IsShiftKeyDown", "IsControlKeyDown", "IsAltKeyDown", "issecretvalue", "UnitXP", "UnitXPMax", "GetXPExhaustion", "hooksecurefunc",
     "GetProfessions", "GetProfessionInfo", "GetItemInfoInstant", "GetNumLootItems", "GetLootSlotType",

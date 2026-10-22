@@ -12,7 +12,6 @@ local function setup(class)
     _G.SlashCmdList = {}
     for _, file in ipairs(FILES) do stub.load(file, "AMO") end
     local AMO = _G.AMO
-    function AMO.SliderType() return "slider" end
     function AMO:Print() end
     local state = { combat = true, quirk = true, ammo = 300, ranged = true, instance = false, kind = "none" }
     local notices = {}
@@ -34,35 +33,91 @@ local function setup(class)
     return AMO, state, notices
 end
 
+local function findItem(sections, key)
+    for _, section in ipairs(sections) do
+        for _, item in ipairs(section.items or {}) do
+            if item.key == key then return item end
+        end
+    end
+end
+
 test("AMO: nur Jäger bekommen die Optionen der Munition", function()
     local AMO = setup("HUNTER")
-    local args = AMO:BuildOptions()
-    eq(args.soon ~= nil, true, "Optionen des Jägers")
-    -- AceConfig prüft: min, max und step eines Reglers müssen Zahlen sein
-    for key, option in pairs(args) do
-        if option.type == "range" then
-            for _, field in ipairs({ "min", "max", "step" }) do
-                eq(type(option[field]), "number", key .. "." .. field .. " ist eine Zahl")
+    local sections = AMO:OptionSections()
+    eq(findItem(sections, "soon") ~= nil, true, "Optionen des Jägers")
+    eq(findItem(sections, "enabled") ~= nil, true, "Schalter Aktiv")
+    for _, section in ipairs(sections) do
+        eq(type(section.title), "string", "Abschnitt hat eine Überschrift")
+        for _, item in ipairs(section.items) do
+            eq(type(item.get()) ~= "nil", true, item.key .. ": Wert vorhanden")
+            if item.type == "slider" then
+                eq(type(item.min), "number", item.key .. ".min ist eine Zahl")
+                local max = type(item.max) == "function" and item.max() or item.max
+                eq(type(max), "number", item.key .. ".max ist eine Zahl")
+                eq(type(item.step), "number", item.key .. ".step ist eine Zahl")
             end
         end
     end
     AMO.api.UnitClass = function() return "Krieger", "WARRIOR" end
-    local other = AMO:BuildOptions()
-    eq(other.soon, nil, "andere Klasse: keine Optionen")
-    eq(other.note ~= nil, true, "Hinweis")
+    local other = AMO:OptionSections()
+    eq(findItem(other, "soon"), nil, "andere Klasse: keine Optionen")
+    eq(other[1].note ~= nil, true, "Hinweis")
+end)
+
+test("AMO: Regler hängen von ihrem Schalter ab", function()
+    local AMO = setup()
+    local sections = AMO:OptionSections()
+    local low, lowAt = findItem(sections, "low"), findItem(sections, "lowAt")
+    eq(AMO:IsOptionDisabled(lowAt), false, "Warnung an: Regler aktiv")
+    low.set(false)
+    eq(AMO:IsOptionDisabled(lowAt), true, "Warnung aus: Regler ausgegraut")
+end)
+
+-- Ein Rahmen, der jeden Aufruf annimmt: reicht, um zu sehen, dass sich die Optionsseiten ohne Fehler aufbauen
+local function fakeFrame()
+    return setmetatable({}, { __index = function(_, method)
+        return function(_, ...)
+            if method:sub(1, 6) == "Create" then return fakeFrame() end
+            if method == "GetStringHeight" then return 12 end
+            if method == "GetChecked" then return true end
+            return nil
+        end
+    end })
+end
+
+test("AMO: Optionsseiten bauen sich auf und lassen sich aktualisieren", function()
+    local AMO = setup()
+    local registered = {}
+    _G.CreateFrame = function() return fakeFrame() end
+    _G.Settings = {
+        RegisterCanvasLayoutCategory = function(_, name) registered[#registered + 1] = name return { GetID = function() return 1 end } end,
+        RegisterCanvasLayoutSubcategory = function(_, _, name) registered[#registered + 1] = name return { GetID = function() return 2 end } end,
+        RegisterAddOnCategory = function() end,
+        OpenToCategory = function(id) registered.opened = id end,
+    }
+    _G.C_AddOns = { GetAddOnMetadata = function() return "x" end }
+    AMO:SetupOptions()
+    eq(#registered, 2, "Übersicht und Unterseite angemeldet")
+    eq(registered[2], "General", "Unterseite heißt Allgemein")
+    AMO:RefreshPanel(AMO.generalPanel)
+    AMO:OpenOptions()
+    eq(registered.opened, 2, "öffnet die Unterseite")
+    _G.CreateFrame, _G.Settings, _G.C_AddOns = nil, nil, nil
 end)
 
 test("AMO: Funktion komplett abschaltbar", function()
     local AMO, state, notices = setup()
-    local args = AMO:BuildOptions()
-    eq(args.enabled.get(), true, "Standard an")
-    eq(args.soon.disabled(), false, "Optionen aktiv")
+    local sections = AMO:OptionSections()
+    local enabled, soon = findItem(sections, "enabled"), findItem(sections, "soon")
+    eq(enabled.get(), true, "Standard an")
+    eq(AMO:IsOptionDisabled(soon), false, "Optionen aktiv")
     state.ammo = 40
     AMO.ammo:Check()
     local before = #notices
     eq(before > 0, true, "an: Warnung")
-    args.enabled.set(nil, false)
-    eq(args.soon.disabled(), true, "Optionen ausgegraut")
+    enabled.set(false)
+    eq(AMO:IsOptionDisabled(soon), true, "Optionen ausgegraut")
+    eq(AMO:IsOptionDisabled(enabled), false, "Aktiv bleibt bedienbar")
     state.ammo = 0
     AMO.ammo.count = nil
     AMO.ammo:Check()
@@ -72,22 +127,21 @@ test("AMO: Funktion komplett abschaltbar", function()
     eq(#notices, before, "aus: keine Meldung")
 end)
 
-test("AMO: Debug nur mit BugLab und im Debug-Modus", function()
+test("AMO: Debug automatisch an, sobald BugLab erkannt wird", function()
     local AMO = setup()
     local lines = {}
     local debug = AMO:NewDebugger()
     debug:Log("ohne BugLab")
+    eq(AMO:IsDebug(), false, "ohne BugLab kein Debug")
     _G.BugLab = { GetLogger = function() return setmetatable({}, { __index = function(_, method)
         return function(_, text, ...) lines[#lines + 1] = { method, text, ... } end
     end }) end }
-    debug:Log("aus %d", 1)
-    eq(#lines, 0, "Debug-Modus aus")
-    debug:Error("immer %d", 2)
-    eq(lines[1][1], "Error", "Fehler unabhängig vom Modus")
-    AMO.db.profile.debug = true
+    eq(AMO:IsDebug(), true, "mit BugLab Debug an")
     debug:Log("an %d", 3)
-    eq(lines[2][1], "Debug", "Stufe Debug")
-    eq(lines[2][3], 3, "Wert als Argument")
+    eq(lines[1][1], "Debug", "Stufe Debug")
+    eq(lines[1][3], 3, "Wert als Argument")
+    debug:Error("immer %d", 2)
+    eq(lines[2][1], "Error", "Fehler")
     _G.BugLab = nil
     debug:Log("weg")
     eq(#lines, 2, "ohne BugLab nichts")
@@ -155,7 +209,8 @@ test("AMO: leerer Köcher und dringende Warnung", function()
     state.ammo = 0
     AMO.ammo:Check()
     eq(#notices, 2, "leer")
-    eq(notices[2]:find("ff4040", 1, true) ~= nil, true, "rot")
+    eq(notices[1]:find("FFAA4A", 1, true) ~= nil, true, "dringend in Orange")
+    eq(notices[2]:find("F16B68", 1, true) ~= nil, true, "leer in Kritisch-Rot")
     state.instance, state.kind, state.ammo = true, "party", 100
     AMO.ammo:CheckDungeon()
     eq(#notices, 3, "Dungeon-Warnung")
@@ -223,8 +278,13 @@ test("AMO: Händler bietet die stärkste nutzbare Munition an", function()
     -- Köcher mit 2 Plätzen zu 200 fasst 400, es liegen 150 darin: 250 Stück fehlen, Preis 100 je 200 Stück
     eq(shown.text:find("250 x", 1, true) ~= nil, true, "genau so viel wie in den Köcher passt")
     eq(shown.text:find("125", 1, true) ~= nil, true, "Preis nach Stück")
+    local printed = {}
+    AMO.Print = function(_, text) printed[#printed + 1] = text end
     H:BuyPlan()
     eq(bought, 250, "Stück gekauft, nicht Packungen")
+    eq(#printed, 1, "eine Chatzeile nach dem Auffüllen")
+    eq(printed[1]:find("81C995", 1, true) ~= nil, true, "in der Erfolgsfarbe")
+    eq(printed[1]:find("250 x", 1, true) ~= nil, true, "mit der Menge")
     api.GetMoney = function() return 50 end
     H:OnMerchant()
     eq(shown.text:find("100 x", 1, true) ~= nil, true, "Geld reicht nur für 100 Stück")
@@ -413,6 +473,27 @@ test("AMO: Munitions-Tooltip mit Vorrat, Verbrauch und Zeit bis leer", function(
     eq(rows[2][1], "Bullets", "Kugeln getrennt")
     eq(rows[3][2], "340 / 600", "Gesamt mit Platz im Köcher (Pfeile 400 + Kugeln 200)")
     eq(rows[3][1], "Total", "Köcher: alles zusammen")
+    -- Symbol der Munition vor dem Namen, wenn der Client es kennt
+    local info = api.GetItemInfoInstant
+    api.GetItemInfoInstant = function(id)
+        local a1, a2, a3, a4, _, class, subclass = info(id)
+        return a1, a2, a3, a4, id == 20 and 12345 or nil, class, subclass
+    end
+    local iconRows = ammo:TooltipRows()
+    eq(iconRows[1][1]:find("|T12345", 1, true) ~= nil, true, "Symbol vor dem Namen")
+    eq(iconRows[2][1], "Bullets", "ohne Symbol bleibt der Name")
+    api.GetItemInfoInstant = info
+    -- Statusfarben nach den Reglern (Standard: dringend ab 50 Schuss, Warnung ab 2 gefüllten Plätzen)
+    eq(rows[1].colored:find("81C995", 1, true) ~= nil, true, "300 Pfeile: in Ordnung")
+    eq(rows[2].colored:find("FFAA4A", 1, true) ~= nil, true, "40 Kugeln: dringend")
+    eq(rows[3].colored:find("FEFAEB", 1, true) ~= nil, true, "Höchstwert in Elfenbein")
+    eq(rows[3].colored:find("/ 600", 1, true) ~= nil, true, "Höchstwert dabei")
+    eq(ammo:StatusKey(0), "critical", "leer")
+    eq(ammo:StatusKey(500, 2), "warning", "höchstens soon Plätze gefüllt")
+    eq(ammo:StatusKey(500, 5), "ok", "genug")
+    ammo:Settings().low = false
+    eq(ammo:StatusKey(10), "ok", "dringende Warnung aus: kein Orange")
+    ammo:Settings().low = true
     eq(#rows, 3, "ohne Messung keine Verbrauchszeilen")
     local single = ammo:TooltipRows(20)
     eq(#single, 1, "Munition: nur die eigene Sorte")
@@ -437,6 +518,8 @@ test("AMO: Munitions-Tooltip mit Vorrat, Verbrauch und Zeit bis leer", function(
     rows = ammo:TooltipRows()
     eq(rows[4][1] == "Average" and rows[5][1] == "Last combat", true, "Verbrauchszeilen")
     eq(rows[6][2], "15 min", "300 Pfeile bei 20 pro Minute (Bogen getragen)")
+    eq(rows[4].colored:find("6BB9F0", 1, true) ~= nil, true, "Durchschnitt in der Informationsfarbe")
+    eq(rows[6].colored:find("6BB9F0", 1, true) ~= nil, true, "Restzeit in der Informationsfarbe")
 
     eq(ammo:IsAmmoItem(20), true, "Munition")
     eq(ammo:IsAmmoItem(40), true, "Köcher")

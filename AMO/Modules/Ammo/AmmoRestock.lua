@@ -93,7 +93,7 @@ function Ammo:OnMerchant()
     -- Der Popup nimmt nur zwei Textwerte; den ganzen Satz setze ich selbst zusammen
     local text = format(L["Fill your quiver? Buy %d x %s for %s."], plan.amount, plan.offer.name,
         self.api.MoneyText(plan.cost))
-    self.api.StaticPopup_Show("GLIMPSE_RESTOCK_AMMO", text)
+    self.api.StaticPopup_Show("AMO_RESTOCK_AMMO", text)
 end
 
 function Ammo:BuyPlan()
@@ -110,12 +110,18 @@ function Ammo:BuyPlan()
         api.BuyMerchantItem(plan.offer.index, count)
         left = left - count
     end
+    -- Nur eine Chatzeile in der Erfolgsfarbe, keine Bildschirmmeldung und kein Ton
+    local bought = plan.amount - left
+    if bought > 0 then
+        AMO:Print(AMO:Colorize(format(L["Ammo refilled: %d x %s for %s."], bought, plan.offer.name,
+            api.MoneyText(plan.cost)), "ok"))
+    end
 end
 
 function Ammo:EnableRestock()
     AMO:Listen("MERCHANT_SHOW", function() Ammo:OnMerchant() end)
     if StaticPopupDialogs then
-        StaticPopupDialogs["GLIMPSE_RESTOCK_AMMO"] = {
+        StaticPopupDialogs["AMO_RESTOCK_AMMO"] = {
             text = "%s",
             button1 = YES, button2 = NO,
             OnAccept = function() Ammo:BuyPlan() end,

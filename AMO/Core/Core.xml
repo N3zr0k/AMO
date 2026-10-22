@@ -4,5 +4,4 @@
     <Script file="AMODebug.lua"/>
     <Script file="AMONotify.lua"/>
     <Script file="AMOTooltip.lua"/>
-    <Script file="AMOSlider.lua"/>
 </Ui>

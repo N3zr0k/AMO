@@ -22,11 +22,11 @@ function Ammo:Inventory()
             for slot = 1, slots do
                 local id, stack = api.ItemAt(bag, slot)
                 if id then
-                    local _, _, _, _, _, class, subclass = api.GetItemInfoInstant(id)
+                    local _, _, _, _, icon, class, subclass = api.GetItemInfoInstant(id)
                     if class == PROJECTILE and subclass == kind then
                         local entry = items[id]
                         if not entry then
-                            entry = { id = id, kind = kind, count = 0 }
+                            entry = { id = id, kind = kind, count = 0, icon = icon }
                             items[id] = entry
                             order[#order + 1] = entry
                         end
@@ -42,12 +42,25 @@ end
 
 local function ItemName(entry, ammo)
     local name = ammo.api.GetItemName and ammo.api.GetItemName(entry.id)
-    return name or (entry.kind == ammo.ARROW and L["Arrows"] or L["Bullets"])
+    name = name or (entry.kind == ammo.ARROW and L["Arrows"] or L["Bullets"])
+    -- Symbol des Gegenstands vor dem Namen
+    if entry.icon then return format("|T%s:14:14:0:0|t %s", entry.icon, name) end
+    return name
 end
 
 local function Duration(minutes)
     if minutes >= 60 then return format("%d h %d min", math.floor(minutes / 60), math.floor(minutes % 60)) end
     return format("%d min", math.max(1, math.floor(minutes + 0.5)))
+end
+
+--- Status eines Vorrats nach den Reglern: leer = Kritisch, höchstens "lowAt" Schuss = Dringend, höchstens "soon" gefüllte
+-- Köcherplätze = Warnung, sonst in Ordnung. Ohne filled gilt nur die Schusszahl.
+function Ammo:StatusKey(count, filled)
+    local settings = self:Settings()
+    if count <= 0 then return "critical" end
+    if settings.low and count <= settings.lowAt then return "urgent" end
+    if filled and settings.soon > 0 and filled <= settings.soon then return "warning" end
+    return "ok"
 end
 
 --- Zeilen { Links, Rechts, r, g, b } für den Tooltip. Mit onlyId nur diese Sorte (Tooltip der Munition), sonst alle Sorten
@@ -61,26 +74,33 @@ function Ammo:TooltipRows(onlyId)
     end
     if #shown == 0 then return rows end
     local current = self:AmmoKind()
-    local gray = 0.8
+    local ir, ig, ib = AMO:RGB("primary") -- Beschriftungen in Elfenbein
     local total, currentCount, cap = 0, 0, 0
     for _, entry in ipairs(items) do
         if entry.kind == current or not current then currentCount = currentCount + entry.count end
     end
     for _, entry in ipairs(shown) do
-        rows[#rows + 1] = { ItemName(entry, self), tostring(entry.count), gray, gray, gray }
+        rows[#rows + 1] = { ItemName(entry, self), tostring(entry.count), ir, ig, ib,
+            colored = AMO:Colorize(tostring(entry.count), self:StatusKey(entry.count)) }
         total = total + entry.count
     end
     if not onlyId then
         for _, value in pairs(capacity) do cap = cap + value end
         if #shown > 1 or cap > 0 then
-            rows[#rows + 1] = { L["Total"], cap > 0 and format("%d / %d", total, cap) or tostring(total), 1, 1, 1 }
+            local text = cap > 0 and format("%d / %d", total, cap) or tostring(total)
+            -- Der aktuelle Wert zeigt den Status, der Höchstwert ist Elfenbein
+            local colored = AMO:Colorize(tostring(total), self:StatusKey(currentCount, (self:Slots(currentCount))))
+            if cap > 0 then colored = colored .. AMO:Colorize(" / " .. cap, "primary") end
+            rows[#rows + 1] = { L["Total"], text, ir, ig, ib, colored = colored }
         end
     end
+    -- Verbrauch und Restzeit sind Information: Werte in der Informationsfarbe
+    local function Info(label, text) return { label, text, ir, ig, ib, colored = AMO:Colorize(text, "info") } end
     local average, last = self:Rates()
-    if average then rows[#rows + 1] = { L["Average"], format(L["%.1f rounds/min"], average), gray, gray, gray } end
-    if last then rows[#rows + 1] = { L["Last combat"], format(L["%.1f rounds/min"], last), gray, gray, gray } end
+    if average then rows[#rows + 1] = Info(L["Average"], format(L["%.1f rounds/min"], average)) end
+    if last then rows[#rows + 1] = Info(L["Last combat"], format(L["%.1f rounds/min"], last)) end
     if average and average > 0 and currentCount > 0 then
-        rows[#rows + 1] = { L["Empty in (average)"], Duration(currentCount / average), gray, gray, gray }
+        rows[#rows + 1] = Info(L["Empty in (average)"], Duration(currentCount / average))
     end
     return rows
 end

@@ -1,6 +1,6 @@
 local ADDON_NAME = ...
 
--- AMO - Ammunition Management Organizer: Munitionshelfer für Jäger. Das Addon arbeitet allein, ohne Glimpse.
+-- A.M.O Arrows, Muskets & Organization: Munitionshelfer für Jäger. Das Addon arbeitet allein, ohne Glimpse.
 -- Aufbau: Core/ (Gerüst), Modules/Ammo/ (die Funktion), Locales/. Die Funktion hängt sich mit AMO:Listen an Ereignisse und
 -- meldet über AMO:Notify; ihre Einstellungen liegen in AMO.db.profile.ammo.
 local AMO = LibStub("AceAddon-3.0"):NewAddon(ADDON_NAME, "AceEvent-3.0")
@@ -8,6 +8,19 @@ _G.AMO = AMO -- luacheck: ignore 122
 
 AMO.name = ADDON_NAME
 AMO.L = LibStub("AceLocale-3.0"):GetLocale(ADDON_NAME)
+-- Farbsystem V1.0 (documentation/assets/a-m-o_color_system.png), Hex ohne Alpha. Marke: Gold, Olive, Elfenbein, Schwarz.
+-- Oberfläche: Hintergrund, Fläche, Rand, gedämpft, Gold beim Darüberfahren. Status sparsam: Munitionswarnungen sollen sofort
+-- erkennbar sein.
+AMO.colors = {
+    accent = "E1A93A", olive = "1E2C0E", primary = "FEFAEB", black = "000000",
+    background = "0B1008", surface = "192513", border = "4B623D", muted = "AAB6A0", accentHover = "F0C46D",
+    warning = "E1A93A", urgent = "FFAA4A", critical = "F16B68", ok = "81C995", info = "6BB9F0",
+}
+AMO.wordmark = "|cffFEFAEBA|r|cffE1A93A·|r|cffFEFAEBM|r|cffE1A93A·|r|cffFEFAEBO|r" -- Schriftzug A·M·O: helle Buchstaben, goldene Punkte
+AMO.title = AMO.wordmark .. " Arrows, Muskets & Organization"
+AMO.icon = "Interface\\AddOns\\" .. ADDON_NAME .. "\\Media\\Icon" -- Emblem (Media/Icon.tga), 128x128
+AMO.logo = "Interface\\AddOns\\" .. ADDON_NAME .. "\\Media\\Logo" -- Emblem mit hellem Schriftzug (Media/Logo.tga), 128x128
+AMO.logoLarge = "Interface\\AddOns\\" .. ADDON_NAME .. "\\Media\\Logo_256" -- dasselbe in 256x256 (Media/Logo_256.tga) für die Optionen
 
 -- Blizzard-API gebündelt, damit Tests sie ersetzen können
 AMO.api = {
@@ -24,12 +37,13 @@ AMO.api = {
     After = C_Timer and C_Timer.After,
 }
 
-AMO.defaults = { profile = { enabled = true, debug = false } }
+AMO.defaults = { profile = { enabled = true } }
 
 function AMO:OnInitialize()
     self.defaults.profile.ammo = self.ammo.defaults
     self.db = LibStub("AceDB-3.0"):New("AMODB", self.defaults, true)
     self:SetupOptions()
+    if self.SetupCompartment then self:SetupCompartment() end
 end
 
 --- Ist der Charakter ein Jäger? Nur dann läuft die Funktion.
@@ -87,6 +101,18 @@ AMO.probes = {}
 
 function AMO:RegisterProbe(name, func, help)
     self.probes[strlower(name)] = { func = func, help = help }
+end
+
+--- Text in einer Farbe aus AMO.colors
+function AMO:Colorize(text, colorKey)
+    local hex = self.colors[colorKey]
+    return hex and ("|cff" .. hex .. text .. "|r") or text
+end
+
+--- Farbe aus AMO.colors als r, g, b (0 bis 1)
+function AMO:RGB(colorKey)
+    local hex = self.colors[colorKey] or "FFFFFF"
+    return tonumber(hex:sub(1, 2), 16) / 255, tonumber(hex:sub(3, 4), 16) / 255, tonumber(hex:sub(5, 6), 16) / 255
 end
 
 function AMO:Print(text)

@@ -17,6 +17,7 @@ ignore:
   - tests
   - tools
   - docs
+  - documentation
   - .github
   - .luacheckrc
   - .gitattributes

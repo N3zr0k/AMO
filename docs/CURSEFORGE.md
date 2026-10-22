@@ -7,7 +7,7 @@ Projekt-ID danach in die TOC (`## X-Curse-Project-ID`) eintragen. Alpha-Versione
 
 | Feld | Eintrag |
 | --- | --- |
-| Project name | `AMO - Ammunition Management Organizer` |
+| Project name | `A.M.O Arrows, Muskets & Organization` |
 | Slug (URL) | `amo` |
 | Summary | `Ammo helper for hunters: low-ammo warnings, ammo tooltips, automatic equip and quiver refill at the vendor.` |
 | Primary category | Combat |
@@ -21,7 +21,7 @@ Projekt-ID danach in die TOC (`## X-Curse-Project-ID`) eintragen. Alpha-Versione
 ## Description (Markdown)
 
 ```markdown
-# AMO - Ammunition Management Organizer
+# A.M.O Arrows, Muskets & Organization
 
 Ammo helper for hunters in WoW Forever. Works on its own.
 

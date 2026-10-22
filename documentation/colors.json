@@ -1,0 +1,25 @@
+{
+  "name": "A.M.O Color System",
+  "version": "1.0",
+  "theme": "dark",
+  "brand": {
+    "gold": { "hex": "#E1A93A", "usage": "Active elements, buttons, icons" },
+    "hunterOlive": { "hex": "#1E2C0E", "usage": "Brand color, dark surfaces" },
+    "ivory": { "hex": "#FEFAEB", "usage": "Text and light symbols" },
+    "black": { "hex": "#000000", "usage": "Background and header" }
+  },
+  "interface": {
+    "background": { "hex": "#0B1008" },
+    "surface": { "hex": "#192513" },
+    "border": { "hex": "#4B623D" },
+    "muted": { "hex": "#AAB6A0" },
+    "goldHover": { "hex": "#F0C46D" }
+  },
+  "status": {
+    "warning": { "hex": "#E1A93A", "usage": "Quiver almost empty" },
+    "urgent": { "hex": "#FFAA4A", "usage": "Only a few rounds left" },
+    "critical": { "hex": "#F16B68", "usage": "Out of ammo" },
+    "success": { "hex": "#81C995", "usage": "Ammo refilled" },
+    "info": { "hex": "#6BB9F0", "usage": "Supply, fire rate, time to empty" }
+  }
+}

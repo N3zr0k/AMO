@@ -1,4 +1,4 @@
-# AMO - Ammunition Management Organizer
+# A.M.O Arrows, Muskets & Organization
 
 Ammo helper for hunters in WoW Forever (interface 16001). Works on its own, no other addon needed.
 
@@ -19,6 +19,7 @@ Ammo helper for hunters in WoW Forever (interface 16001). Works on its own, no o
 * Tooltip on ammo, quiver and ammo pouch: supply per kind, rounds per minute (average and last fight), time until empty.
 * Optionally equips the best usable ammo automatically (when a stack is empty, the next weaker one follows; not in combat).
 * At a vendor, asks whether the quiver should be refilled with the strongest usable ammo.
+* Logo in the addon list and options; an entry in the addon compartment (button at the minimap) with the logo in its tooltip opens the options. Ammo and quiver tooltips get an A·M·O header with the logo and a divider line.
 * The whole addon can be switched off; for other classes it does nothing.
 
 ## Options
@@ -28,7 +29,7 @@ Game options, category **AMO**. All values can be set with sliders and toggles. 
 ## Commands
 
 * `/amo` opens the options.
-* `/amo debug [on|off]` switches debug mode. Debug messages appear only in the BugLab console; without BugLab there are none.
+* Debug messages appear only in the BugLab console and switch on automatically as soon as BugLab is detected; without BugLab there are none.
 * `/amo equip` shows what the ammo equip would do right now.
 
 ## Installation
