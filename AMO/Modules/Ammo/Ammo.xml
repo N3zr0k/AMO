@@ -1,0 +1,10 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+    <!-- Munition: Ammo.lua legt die Funktion an, die anderen Dateien erweitern sie. -->
+    <Script file="AmmoTexts.lua"/>
+    <Script file="Ammo.lua"/>
+    <Script file="AmmoRestock.lua"/>
+    <Script file="AmmoEquip.lua"/>
+    <Script file="AmmoStats.lua"/>
+    <Script file="AmmoTooltip.lua"/>
+    <Script file="AmmoOptions.lua"/>
+</Ui>

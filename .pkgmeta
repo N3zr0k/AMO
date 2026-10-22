@@ -1,0 +1,26 @@
+# Ein Addon in einem Unterordner AMO. Der Packager baut alles in einen Ordner AMO und schiebt den Addon-Ordner
+# danach auf die oberste Ebene des ZIPs. Was außen liegt, bleibt über "ignore" draußen.
+package-as: AMO
+
+move-folders:
+  AMO/AMO: AMO
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
+# Beziehungen auf CurseForge (Kurznamen der Projekte)
+embedded-libraries:
+  - ace3
+
+ignore:
+  - tests
+  - tools
+  - docs
+  - .github
+  - .luacheckrc
+  - .gitattributes
+  - .gitignore
+  - README.md
+  - CHANGELOG.md
+  - LICENSE

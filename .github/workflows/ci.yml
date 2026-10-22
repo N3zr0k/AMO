@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Struktur prüfen (TOC, XML, Dateien)
+        run: python3 tools/check.py
+
+      - name: luacheck
+        uses: lunarmodules/luacheck@v1
+
+      - uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: "5.4"
+
+      - name: Tests
+        run: lua tests/run.lua
+
+  # Neue Version oder neue Stufe und alles grün -> Tag setzen und Release bauen. Die Stufe steht in der TOC-Version:
+  #   Version X.Y.Z-alpha.N                 Alpha   vX.Y.Z-alpha.N   (Prerelease, kein Upload)
+  #   Version X.Y.Z-beta.N                  Beta    vX.Y.Z-beta.N    (Release mit Beta im Titel, CurseForge)
+  #   Version X.Y.Z-latest.N                Latest  vX.Y.Z-latest.N  (Release als "Latest", CurseForge)
+  # Nur auf main; Pull Requests und Stufen, die es für die Version schon gibt (oder höhere), werden übersprungen.
+  tag:
+    needs: check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Tag anlegen, wenn die Version oder ihre Stufe neu ist
+        id: make
+        run: |
+          # Die Stufe steht in der TOC-Version (siehe tools/check.py): alpha, beta oder latest.
+          tag="$(python3 tools/check.py --next-tag)"
+          if [ -z "$tag" ]; then
+            # Gibt es das Tag schon, aber noch kein Release (z. B. ein früherer Lauf ist gescheitert), wird nur das
+            # Release gebaut. Sonst ist nichts zu tun.
+            current="$(python3 tools/check.py --current-tag)"
+            if [ -n "$current" ] && ! gh release view "$current" > /dev/null 2>&1; then
+              echo "Tag $current existiert, aber es gibt noch kein Release: es wird gebaut."
+              gh workflow run release.yml --ref "refs/tags/$current"
+            else
+              echo "Für diese Version gibt es schon ein Tag dieser oder einer höheren Stufe (nur Suffix-Zahl neu = nur Repo geändert), kein Release."
+            fi
+            exit 0
+          fi
+          # TOC-Versionen und CHANGELOG müssen zum Tag passen, sonst gibt es kein Tag
+          python3 tools/check.py --tag "$tag"
+          git tag "$tag" "$GITHUB_SHA"
+          git push origin "refs/tags/$tag"
+          # Ein mit dem GITHUB_TOKEN gepushtes Tag startet keinen Push-Workflow. Der Release-Workflow wird deshalb
+          # ausdrücklich auf dem Tag gestartet (workflow_dispatch ist davon ausgenommen), so sieht der Packager
+          # einen echten Tag-Lauf.
+          gh workflow run release.yml --ref "refs/tags/$tag"
+          echo "Tag $tag angelegt, der Release-Workflow läuft darauf."

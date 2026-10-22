@@ -1,0 +1,139 @@
+name: Release
+
+# Ein Tag vX.Y.Z-PHASE.N baut das Paket und legt ein GitHub-Release an. Das Tag muss zur Version in
+# der TOC und zu einem Abschnitt im CHANGELOG passen (prüft tools/check.py). Die Phase steht in der TOC-Version:
+#   alpha   nur Prerelease auf GitHub, kein Upload
+#   beta    GitHub-Release mit "(Beta)" im Titel (nicht "Latest"), Upload zu CurseForge
+#   latest  GitHub-Release als "Latest", Upload zu CurseForge
+# Ist nur N neu (gleiche Version und Phase wie ein vorhandenes Tag), wird nichts gebaut. Beta und latest brauchen
+# den Abschnitt "## [X.Y.Z]" im CHANGELOG, Alpha reicht "## [Unreleased]".
+#
+# Normalerweise setzt die CI das Tag selbst (ci.yml) und startet diesen Workflow danach per
+# workflow_dispatch auf dem Tag. Das ist nötig, weil ein mit dem GITHUB_TOKEN gepushtes Tag keinen
+# Push-Workflow auslöst. Ein von Hand gepushtes Tag funktioniert ebenfalls. Bei einem Start per Hand
+# muss als Ref das Tag gewählt werden, nicht ein Branch.
+# CurseForge nur bei beta und latest (und nur mit Secret CF_API_KEY, siehe README, Abschnitt Veröffentlichen).
+# Wago und WoWInterface sind abgeschaltet, bis Sven sie freigibt.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.ref_name }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+      # Ohne Token lädt der Packager nicht hoch: bei Alpha bleibt er leer. Wago und WoWInterface bekommen keinen.
+      CF_API_KEY: ${{ !contains(github.ref_name, '-alpha') && secrets.CF_API_KEY || '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sicherstellen, dass auf einem Tag gebaut wird
+        run: |
+          if [ "$GITHUB_REF_TYPE" != "tag" ]; then
+            echo "::error::Der Workflow muss auf einem Tag laufen (Ref $GITHUB_REF), nicht auf einem Branch."
+            exit 1
+          fi
+
+      # Nur N ist neu: es hat sich nur das Repo geändert, nicht das Addon
+      - name: Nur Suffix-Zahl neu? Dann kein Release
+        run: |
+          older="$(python3 tools/check.py --suffix-only "$TAG")"
+          if [ -n "$older" ]; then
+            echo "::notice::$TAG unterscheidet sich von $older nur in der Suffix-Zahl, es wird kein Release gebaut."
+            echo "SKIP=true" >> "$GITHUB_ENV"
+          fi
+
+      - name: Tag, TOC-Version und CHANGELOG prüfen
+        if: env.SKIP != 'true'
+        run: python3 tools/check.py --tag "$TAG"
+
+      - name: Alpha nur auf GitHub
+        if: env.SKIP != 'true' && contains(env.TAG, '-alpha')
+        run: |
+          echo "Alpha-Version: kein Upload zu CurseForge, nur ein Prerelease auf GitHub."
+
+      # Zeigt, ob CurseForge den Token annimmt (nur Statuscode und Fehlertext, nie der Token selbst)
+      - name: CurseForge-Zugang prüfen
+        if: env.SKIP != 'true' && env.CF_API_KEY != ''
+        continue-on-error: true
+        run: |
+          # Form des Secrets prüfen (ohne den Wert zu zeigen): ein Upload-Token ist eine UUID mit 36 Zeichen
+          echo "CF_API_KEY: ${#CF_API_KEY} Zeichen, UUID-Form: $([[ "$CF_API_KEY" =~ ^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$ ]] && echo ja || echo nein), Leerraum oder Anfuehrungszeichen: $([[ "$CF_API_KEY" =~ [[:space:]\"\'] ]] && echo ja || echo nein)"
+          body="$(curl -s -w '\n%{http_code}' -H "x-api-token: $CF_API_KEY" "https://wow.curseforge.com/api/game/wow/versions")"
+          code="${body##*$'\n'}"
+          text="${body%$'\n'*}"
+          echo "CurseForge-Versionsabfrage: HTTP $code"
+          if [[ "$text" == *errorMessage* ]]; then
+            echo "$text" | head -c 400; echo
+            echo "::warning::CurseForge hat den Token abgelehnt (CF_API_KEY pruefen: Upload-Token aus dem Account, ohne Leerzeichen)."
+          fi
+
+      # Meldet der Packager nur beim Hochladen zu CurseForge einen Fehler (Exit 1), sollen
+      # GitHub-Release und Kennzeichnung trotzdem fertig werden. Der Fehler wird am Ende gemeldet (letzter Schritt),
+      # fehlt das Zip, bricht "Zip prüfen" ab.
+      - name: Paket bauen und veröffentlichen
+        id: pack
+        if: env.SKIP != 'true'
+        continue-on-error: true
+        uses: BigWigsMods/packager@v2
+        # Die CurseForge-ID steht als X-Curse-Project-ID in der TOC (sobald das Projekt existiert)
+
+      - name: Zip prüfen
+        if: env.SKIP != 'true'
+        run: |
+          shopt -s nullglob
+          zips=(.release/*.zip)
+          if [ ${#zips[@]} -eq 0 ]; then
+            echo "::error::Der Packager hat kein Zip in .release/ erzeugt."
+            ls -la .release 2>/dev/null || true
+            exit 1
+          fi
+          printf 'Zip: %s\n' "${zips[@]}"
+
+      # Gewollt ist auf GitHub:
+      #   alpha   -> Prerelease
+      #   beta    -> richtiges Release mit "(Beta)" im Titel, nicht Prerelease, nicht "Latest"
+      #   latest  -> richtiges Release, als "Latest" markiert
+      # Hat der Packager das Release nicht angelegt, wird es hier mit dem Zip erzeugt.
+      - name: Release auf GitHub kennzeichnen
+        if: env.SKIP != 'true'
+        run: |
+          shopt -s nullglob
+          zips=(.release/*.zip)
+          if [[ "$TAG" == *-alpha* ]]; then
+            flags=(--prerelease --title "$TAG")
+          elif [[ "$TAG" == *-beta* ]]; then
+            flags=(--prerelease=false --latest=false --title "$TAG (Beta)")
+          else
+            flags=(--prerelease=false --latest --title "$TAG")
+          fi
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release edit "$TAG" "${flags[@]}"
+          else
+            gh release create "$TAG" "${flags[@]}" --generate-notes "${zips[@]}"
+          fi
+          # Ergebnis prüfen und im Log zeigen
+          gh release view "$TAG" --json tagName,name,isPrerelease,isDraft
+          is_pre="$(gh release view "$TAG" --json isPrerelease --jq .isPrerelease)"
+          if [[ "$TAG" == *-alpha* && "$is_pre" != "true" ]] || [[ "$TAG" != *-alpha* && "$is_pre" != "false" ]]; then
+            echo "::error::Das Release $TAG hat auf GitHub nicht die gewünschte Kennzeichnung (isPrerelease=$is_pre)."
+            exit 1
+          fi
+
+      # Ganz am Ende: ein Fehler des Packagers (meist der CurseForge-Upload) bleibt sichtbar, nachdem das
+      # GitHub-Release fertig ist.
+      - name: Packager-Ergebnis melden
+        if: always() && env.SKIP != 'true' && steps.pack.outcome == 'failure'
+        run: |
+          echo "::error::Der Packager meldete einen Fehler, meist beim Upload zu CurseForge. Das GitHub-Release ist trotzdem fertig, Details im Schritt Paket bauen und veroeffentlichen."
+          exit 1

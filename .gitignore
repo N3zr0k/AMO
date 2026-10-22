@@ -1,0 +1,8 @@
+# Build und Editor
+.release/
+*.zip
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
