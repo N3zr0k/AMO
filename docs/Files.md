@@ -17,7 +17,8 @@ Alle Dateien im Spielordner `AMO/`.
 | `Core/Core.xml` | Lädt die Kerndateien vor den Modulen | – | – |
 | `Core/AMO.lua` | Addon-Objekt, Datenbank `AMODB`, Ereignisse, Meldungen, Anmeldung der Proben | `AMODB` lesen/schreiben | AceDB |
 | `Core/AMODebug.lua` | Debug-Meldungen über BugLab, Anmeldung beim Login | – | BugLab (optional) |
-| `Core/AMONotify.lua` | Große Meldung und Hinweis mit Ton, Mindestabstand | – | Blizzard: `RaidNotice_AddMessage`, `PlaySound` |
+| `Core/AMONotify.lua` | Große Meldung und Hinweis mit Ton, Mindestabstand | – | Blizzard: `PlaySound` |
+| `Core/AMOLevelUp.lua` | Levelup-Anzeige für das Tier (Optik wie Blizzards LevelUpDisplay, Tiername statt „Du hast … erreicht“); Probe `/amo levelup` | – | Blizzard: Textur `Interface\LevelUp\LevelUpTex`, `UNIT_LEVEL` |
 | `Core/AMOTooltip.lua` | Zeilen in Item-Tooltips | – | Blizzard: `TooltipDataProcessor` |
 | `Core/AMOCompartment.lua` | Eintrag im Addon-Kompartment (Minikarte) mit Logo im Tooltip, Klick öffnet die Optionen | – | Blizzard: `AddonCompartmentFrame` |
 | `Core/Options.xml` | Lädt Optionen und Befehle nach den Modulen | – | – |

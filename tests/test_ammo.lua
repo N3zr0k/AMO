@@ -19,9 +19,7 @@ local function setup(class)
     AMO.api.UnitRace = function() return "Orc", state.race or "Orc" end
     AMO.api.GetTime = function() return stub.now end
     AMO.api.PlaySound = function() end
-    AMO.api.RaidNotice_AddMessage = function(_, text) notices[#notices + 1] = text end
-    AMO.api.RaidWarningFrame = {}
-    AMO.api.ChatTypeInfo = { RAID_WARNING = {} }
+    AMO.api.ShowLine = function(_, text) notices[#notices + 1] = text end
     AMO.ammo.api.GetInventoryItemCount = function() return math.max(state.ammo, state.quirk and 1 or 0) end
     AMO.ammo.api.GetInventoryItemID = function(_, slot)
         if slot == 0 then return state.ammo > 0 and 2 or nil end

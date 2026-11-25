@@ -28,14 +28,20 @@ AMO.api = {
     UnitRace = UnitRace,
     GetTime = GetTime,
     PlaySound = PlaySound,
-    RaidNotice_AddMessage = RaidNotice_AddMessage,
-    RaidWarningFrame = RaidWarningFrame,
-    UIErrorsFrame = UIErrorsFrame,
-    ChatTypeInfo = ChatTypeInfo,
     CreateFrame = CreateFrame,
     UIParent = UIParent,
     After = C_Timer and C_Timer.After,
+    UnitGUID = UnitGUID,
+    UnitName = UnitName,
+    UnitLevel = UnitLevel,
+    -- Kennt Blizzards Levelup-Anzeige das Tier schon? Dann hört sie auf UNIT_LEVEL und zeigt es selbst.
+    NativePetDisplay = function()
+        local display = _G.LevelUpDisplay
+        return display and display.IsEventRegistered and display:IsEventRegistered("UNIT_LEVEL") or false
+    end,
 }
+
+AMO.api.ShowLine = function(...) return AMO.ShowLine(...) end -- erst in AMONotify.lua definiert
 
 AMO.defaults = { profile = { enabled = true } }
 
@@ -54,7 +60,10 @@ end
 
 function AMO:OnEnable()
     self:Announce()
-    if self:IsHunter() then self.ammo:Enable() end
+    if self:IsHunter() then
+        self.ammo:Enable()
+        if self.EnablePetLevel then self:EnablePetLevel() end
+    end
 end
 
 --- Ereignis abonnieren. AceEvent kennt pro Objekt nur einen Handler je Ereignis (ein zweites RegisterEvent ersetzt den ersten),

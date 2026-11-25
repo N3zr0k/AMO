@@ -18,11 +18,11 @@ read_globals = {
     "UnitRace", "GetMerchantNumItems", "GetMerchantItemInfo", "GetMerchantItemLink", "BuyMerchantItem", "GetMoney",
     "GetCoinTextureString", "GetMoneyString", "StaticPopup_Show", "YES", "NO", "UnitAffectingCombat",
     "GetContainerNumSlots", "GetContainerNumFreeSlots", "NUM_BAG_SLOTS", "PlaySound", "GetInventoryItemCount",
-    "GetInventoryItemID", "UIErrorsFrame", "ChatTypeInfo", "RaidWarningFrame", "RaidNotice_AddMessage", "LibStub",
+    "GetInventoryItemID", "LibStub",
     "CreateFrame", "C_Timer", "C_Item", "C_AddOns", "C_Container", "Enum", "TooltipDataProcessor", "GameTooltip",
     "AddonCompartmentFrame", "PixelUtil", "InterfaceOptions_AddCategory", "InterfaceOptionsFrame_OpenToCategory",
     "UIParent", "Settings", "GetTime", "UnitGUID", "UnitName", "UnitLevel", "GetLocale", "GetAddOnMetadata",
     "IsShiftKeyDown", "IsControlKeyDown", "IsAltKeyDown", "issecretvalue", "GetItemInfoInstant", "InCombatLockdown",
     "tinsert", "tremove", "wipe", "format", "strsplit", "strmatch", "strtrim", "strlower", "gsub", "time", "ceil",
-    "floor", "_G", "geterrorhandler", "IsInInstance", "Item", "GetItemInfo", "UnitClass", "unpack",
+    "floor", "_G", "UNKNOWNOBJECT", "LEVEL_GAINED", "geterrorhandler", "IsInInstance", "Item", "GetItemInfo", "UnitClass", "unpack",
 }
